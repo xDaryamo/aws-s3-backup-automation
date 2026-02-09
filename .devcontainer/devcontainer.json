@@ -1,0 +1,13 @@
+{
+  "name": "AWS S3 Backup Automation",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "containerEnv": {
+    "TERM": "xterm-256color"
+  },
+  "postCreateCommand": "bash .devcontainer/scripts/setup.sh",
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspaces/aws-s3-backup-automation"
+}
