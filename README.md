@@ -70,6 +70,11 @@ $ aws s3 ls s3://dariomazza-aws-backup-2026-database
 2026-02-11 02:00:02        128 prod_db_backup.sql
 ```
 
+### 3. SNS Email Notification
+After each backup execution, the system sends an automated summary report via Amazon SNS. Below are examples of the email notifications received, detailing the status of the synchronization and any skipped files.
+
+![SNS Notification Email](docs/sns_notifications.png)
+
 ## Business Impact
 - **Operational Reliability**: Eliminates human error by automating the entire backup lifecycle.
 - **Data Durability**: Leverages AWS infrastructure (99.999999999% durability).
