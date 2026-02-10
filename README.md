@@ -9,6 +9,7 @@ The following diagram illustrates the automated workflow. The On-Premise server 
 ![Architecture Diagram](docs/architecture.svg)
 
 ## Technical Implementation
+- **Incremental Uploads**: The script compares local file sizes with existing S3 objects before uploading. If a file is already present and unchanged, the upload is skipped to optimize bandwidth and reduce API costs.
 - **Data Categorization**: The Python script automatically sorts files into specific S3 buckets (Documents, Photos, Database) based on file extensions.
 - **Disaster Recovery**: S3 Versioning is enabled to allow point-in-time recovery.
 - **Cost Optimization**: Infrastructure is configured with S3 Lifecycle Policies. Data is automatically transitioned to lower-cost storage classes (Standard-IA and S3 Glacier) after 30 and 60 days.
@@ -19,22 +20,32 @@ The following diagram illustrates the automated workflow. The On-Premise server 
 - **Infrastructure as Code**: Terraform
 - **Cloud Services**: Amazon S3, Amazon SNS, AWS IAM
 
+## Automation and Scheduling
+In a production environment, this system is designed to be fully autonomous. The backup script is intended to be scheduled as a **CronJob** on a local server or within a containerized orchestrator. 
+
+Example configuration for a daily backup at 02:00 AM:
+```bash
+0 2 * * * /usr/bin/python3 /path/to/backup.py >> /var/log/s3_backup.log 2>&1
+```
+This ensures that data is backed up during off-peak hours, minimizing impact on network performance and ensuring consistent daily recovery points.
+
 ## Production Verification Logs
 The following logs demonstrate a real execution of the system, showing the successful upload of files and the subsequent verification using the AWS CLI.
 
 ### 1. Python Script Execution
-The script identifies files in the `sample_data/` directory and uploads them to the corresponding S3 buckets based on file type.
+The script identifies files in the `sample_data/` directory and performs an incremental sync.
 
 ```text
-2026-02-11 02:00:01,519 - INFO - Starting backup from directory: ./sample_data
-2026-02-11 02:00:01,520 - INFO - Uploading meeting_notes.txt to dariomazza-aws-backup-2026-documents...
-2026-02-11 02:00:01,771 - INFO - Uploading sample_image.jpg to dariomazza-aws-backup-2026-photos...
-2026-02-11 02:00:02,514 - INFO - Uploading project_report.pdf to dariomazza-aws-backup-2026-documents...
-2026-02-11 02:00:02,605 - INFO - Uploading prod_db_backup.sql to dariomazza-aws-backup-2026-database...
-2026-02-11 02:00:02,880 - INFO - Backup completed.
-Files successfully saved: 4
+2026-02-11 02:00:01,372 - INFO - Starting incremental backup from directory: ./sample_data
+2026-02-11 02:00:01,567 - INFO - File meeting_notes.txt already up to date in dariomazza-backup-documents, skipping.
+2026-02-11 02:00:01,748 - INFO - File sample_image.jpg already up to date in dariomazza-backup-photos, skipping.
+2026-02-11 02:00:01,789 - INFO - File project_report.pdf already up to date in dariomazza-backup-documents, skipping.
+2026-02-11 02:00:01,974 - INFO - File prod_db_backup.sql already up to date in dariomazza-backup-database, skipping.
+2026-02-11 02:00:01,974 - INFO - Backup completed.
+Files uploaded: 0
+Files skipped (already exist): 4
 Errors encountered: 0
-2026-02-11 02:00:03,044 - INFO - SNS notification sent successfully.
+2026-02-11 02:00:02,140 - INFO - SNS notification sent successfully.
 ```
 
 ### 2. AWS Infrastructure Verification
