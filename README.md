@@ -9,7 +9,7 @@ The following diagram illustrates the automated workflow. The On-Premise server 
 ![Architecture Diagram](docs/architecture.svg)
 
 ## Technical Implementation
-- **Incremental Uploads**: The script compares local file sizes with existing S3 objects before uploading. If a file is already present and unchanged, the upload is skipped to optimize bandwidth and reduce API costs.
+- **Smart Incremental Sync**: The script calculates the **MD5 hash** of local files and compares it with the S3 **ETag**. This ensures that any modification—even if the file size remains the same—is detected and backed up, while identical files are skipped to save time and costs.
 - **Data Categorization**: The Python script automatically sorts files into specific S3 buckets (Documents, Photos, Database) based on file extensions.
 - **Disaster Recovery**: S3 Versioning is enabled to allow point-in-time recovery.
 - **Cost Optimization**: Infrastructure is configured with S3 Lifecycle Policies. Data is automatically transitioned to lower-cost storage classes (Standard-IA and S3 Glacier) after 30 and 60 days.
@@ -33,19 +33,19 @@ This ensures that data is backed up during off-peak hours, minimizing impact on 
 The following logs demonstrate a real execution of the system, showing the successful upload of files and the subsequent verification using the AWS CLI.
 
 ### 1. Python Script Execution
-The script identifies files in the `sample_data/` directory and performs an incremental sync.
+The script performs a smart incremental sync using MD5 checksums.
 
 ```text
-2026-02-11 02:00:01,372 - INFO - Starting incremental backup from directory: ./sample_data
-2026-02-11 02:00:01,567 - INFO - File meeting_notes.txt already up to date in dariomazza-backup-documents, skipping.
-2026-02-11 02:00:01,748 - INFO - File sample_image.jpg already up to date in dariomazza-backup-photos, skipping.
-2026-02-11 02:00:01,789 - INFO - File project_report.pdf already up to date in dariomazza-backup-documents, skipping.
-2026-02-11 02:00:01,974 - INFO - File prod_db_backup.sql already up to date in dariomazza-backup-database, skipping.
-2026-02-11 02:00:01,974 - INFO - Backup completed.
-Files uploaded: 0
-Files skipped (already exist): 4
+2026-02-11 02:00:01,547 - INFO - Starting smart backup (MD5 check) from: ./sample_data
+2026-02-11 02:00:01,711 - INFO - Uploading meeting_notes.txt to dariomazza-backup-documents...
+2026-02-11 02:00:02,034 - INFO - File sample_image.jpg is identical (MD5 match), skipping.
+2026-02-11 02:00:02,098 - INFO - File project_report.pdf is identical (MD5 match), skipping.
+2026-02-11 02:00:02,335 - INFO - File prod_db_backup.sql is identical (MD5 match), skipping.
+2026-02-11 02:00:02,335 - INFO - Backup completed.
+Files uploaded (new/modified): 1
+Files skipped (identical): 3
 Errors encountered: 0
-2026-02-11 02:00:02,140 - INFO - SNS notification sent successfully.
+2026-02-11 02:00:02,534 - INFO - SNS notification sent successfully.
 ```
 
 ### 2. AWS Infrastructure Verification
