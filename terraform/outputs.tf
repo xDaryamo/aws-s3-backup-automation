@@ -1,6 +1,11 @@
-output "s3_bucket_name" {
-  description = "The name of the S3 bucket created."
-  value       = aws_s3_bucket.backup_bucket.bucket
+output "s3_bucket_names" {
+  description = "The names of the S3 buckets created."
+  value       = { for k, b in aws_s3_bucket.backup_buckets : k => b.bucket }
+}
+
+output "sns_topic_arn" {
+  description = "The ARN of the SNS topic for notifications."
+  value       = aws_sns_topic.backup_notifications.arn
 }
 
 output "iam_user_access_key_id" {
