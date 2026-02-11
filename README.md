@@ -11,7 +11,7 @@ The following diagram illustrates the automated workflow. The On-Premise server 
 ## Technical Implementation
 - **Smart Incremental Sync**: The script calculates the **MD5 hash** of local files and compares it with the S3 **ETag**. This ensures that any modification—even if the file size remains the same—is detected and backed up, while identical files are skipped to save time and costs.
 - **Data Categorization**: The Python script automatically sorts files into specific S3 buckets (Documents, Photos, Database) based on file extensions.
-- **Disaster Recovery**: S3 Versioning is enabled to allow point-in-time recovery.
+- **Disaster Recovery**: S3 Versioning is enabled on all buckets to prevent accidental data loss and allow point-in-time recovery.
 - **Cost Optimization**: Infrastructure is configured with S3 Lifecycle Policies. Data is automatically transitioned to lower-cost storage classes (Standard-IA and S3 Glacier) after 30 and 60 days.
 - **Proactive Monitoring**: Integrated with Amazon SNS to deliver a status report via email after each execution.
 
