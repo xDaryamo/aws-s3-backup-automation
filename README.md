@@ -3,6 +3,8 @@
 ## Project Overview
 Small and medium-sized enterprises often rely on manual backup processes that are inconsistent and prone to human error. This project provides an automated, off-site backup solution using Amazon S3 to ensure data integrity, security, and cost-efficiency without manual intervention.
 
+> **Why this matters:** Manual backups are often forgotten or fail silently. This system ensures **"Data Peace of Mind"** by combining automated scheduling with smart integrity checks, guaranteeing that your most critical business data is always versioned, archived, and recoverable without lifting a finger.
+
 ## Architecture
 The following diagram illustrates the automated workflow. The On-Premise server triggers the backup process daily, synchronizing local data with specialized AWS S3 buckets.
 
